@@ -102,7 +102,11 @@ def build_model(checkpoint_dir, step, device, phase):
     # Load the model state
     model.to_empty(device=device)
     model.init_weights() # note: this is dumb, but we need to init the rotary embeddings. TODO: fix model re-init
-    model.load_state_dict(model_data, strict=True, assign=True)
+    model.load_state_dict(model_data, strict=False, assign=True)
+    # Zero new parameters missing in sdobson checkpoint
+    for name, param in model.named_parameters():
+        if "ve_gate" in name or "value_embeds" in name:
+            param.data.zero_()
     # Put the model in the right training phase / mode
     if phase == "eval":
         model.eval()
